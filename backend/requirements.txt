@@ -1,5 +1,11 @@
 fastapi
 uvicorn
+bcrypt
+passlib
+python-jose[cryptography]
+pyjwt
+sqlalchemy
+databases
 requests
 azure-cosmos
 azure-identity
@@ -10,8 +16,7 @@ azure-mgmt-network
 azure-mgmt-monitor
 azure-mgmt-loganalytics
 azure-mgmt-recoveryservices
+azure-mgmt-subscription
 azure-mgmt-automation
 azure-mgmt-logic
-msal
 jinja2
-itsdangerous
