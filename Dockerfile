@@ -20,9 +20,12 @@ RUN npm run build
 # ==== Final Stage: Combined Image ====
 FROM ubuntu:20.04
 
+# Set non-interactive mode to prevent timezone selection prompt
+ENV DEBIAN_FRONTEND=noninteractive
+
 # Install needed packages: supervisor, nginx, python3, and pip
 RUN apt-get update && \
-    apt-get install -y supervisor nginx python3 python3-pip && \
+    apt-get install -y supervisor nginx python3 python3-pip tzdata && \
     rm -rf /var/lib/apt/lists/*
 
 # Create directories for logs if needed
@@ -35,7 +38,7 @@ COPY --from=backend-build /app/backend /app/backend
 RUN rm -rf /var/www/html/*
 COPY --from=frontend-build /app/frontend/build /var/www/html
 
-# Copy your Supervisor configuration file (see below)
+# Copy your Supervisor configuration file
 COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose port 80 (nginx) – this will be the port your App Service listens on

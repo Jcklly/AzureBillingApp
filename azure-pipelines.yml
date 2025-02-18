@@ -43,5 +43,5 @@ stages:
       displayName: Deploy to Azure Web App
       inputs:
         azureSubscription: 'AzureBillingApp-Connection'
-        appName: 'AnceroBilling'  # your single app service name
+        appName: 'AnceroBilling'
         containers: '$(containerRegistry)/$(imageRepository):$(tag)'
