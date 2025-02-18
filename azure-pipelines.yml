@@ -50,7 +50,7 @@ stages:
   - job: Deploy
     displayName: Deploy Backend and Frontend to Azure Web App
     pool:
-      vmImage: $(vmImageName)
+      name: Default
     steps:
     - task: AzureWebAppContainer@1
       displayName: Deploy Backend to Azure Web App
