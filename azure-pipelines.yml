@@ -5,13 +5,10 @@ resources:
 - repo: self
 
 variables:
-  # Azure Container Registry details
   dockerRegistryServiceConnection: '138f68fc-3f69-468d-b87e-98ba93a0748d'
   containerRegistry: 'jckllybillingacr.azurecr.io'
-  backendImageRepository: 'jckllyazurebillingapp-backend'
-  frontendImageRepository: 'jckllyazurebillingapp-frontend'
-  backendDockerfilePath: '$(Build.SourcesDirectory)/backend/Dockerfile'
-  frontendDockerfilePath: '$(Build.SourcesDirectory)/frontend/Dockerfile'
+  imageRepository: 'jckllyazurebillingapp'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
   vmImageName: 'ubuntu-latest'
 
@@ -20,26 +17,16 @@ stages:
   displayName: Build and push stage
   jobs:
   - job: Build
-    displayName: Build Backend and Frontend Containers
+    displayName: Build Combined Container Image
     pool:
-      name: 'Default'
+      name: Default
     steps:
     - task: Docker@2
-      displayName: Build and push backend image
+      displayName: Build and push combined image
       inputs:
         command: buildAndPush
-        repository: $(backendImageRepository)
-        dockerfile: $(backendDockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
-
-    - task: Docker@2
-      displayName: Build and push frontend image
-      inputs:
-        command: buildAndPush
-        repository: $(frontendImageRepository)
-        dockerfile: $(frontendDockerfilePath)
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
@@ -48,20 +35,13 @@ stages:
   displayName: Deploy stage
   jobs:
   - job: Deploy
-    displayName: Deploy Backend and Frontend to Azure Web App
+    displayName: Deploy Combined Container to Azure Web App
     pool:
       name: Default
     steps:
     - task: AzureWebAppContainer@1
-      displayName: Deploy Backend to Azure Web App
+      displayName: Deploy to Azure Web App
       inputs:
         azureSubscription: 'AzureBillingApp-Connection'
-        appName: 'jcklly-billing-backend'
-        containers: '$(containerRegistry)/$(backendImageRepository):$(tag)'
-
-    - task: AzureWebAppContainer@1
-      displayName: Deploy Frontend to Azure Web App
-      inputs:
-        azureSubscription: 'AzureBillingApp-Connection' 
-        appName: 'jcklly-billing-frontend' 
-        containers: '$(containerRegistry)/$(frontendImageRepository):$(tag)'
+        appName: 'AnceroBilling'  # your single app service name
+        containers: '$(containerRegistry)/$(imageRepository):$(tag)'
