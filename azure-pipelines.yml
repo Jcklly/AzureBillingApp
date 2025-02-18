@@ -55,13 +55,13 @@ stages:
     - task: AzureWebAppContainer@1
       displayName: Deploy Backend to Azure Web App
       inputs:
-        azureSubscription: 'jckllybillingacr-connection'
+        azureSubscription: 'AzureBillingApp-Connection'
         appName: 'jcklly-billing-backend'
         containers: '$(containerRegistry)/$(backendImageRepository):$(tag)'
 
     - task: AzureWebAppContainer@1
       displayName: Deploy Frontend to Azure Web App
       inputs:
-        azureSubscription: 'jckllybillingacr-connection' 
+        azureSubscription: 'AzureBillingApp-Connection' 
         appName: 'jcklly-billing-frontend' 
         containers: '$(containerRegistry)/$(frontendImageRepository):$(tag)'
