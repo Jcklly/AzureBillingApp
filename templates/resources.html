@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Azure Resources</title>
+  </head>
+  <body>
+    <h1>Resources for Subscription: {{ subscription_id }}</h1>
+    <p>Welcome, {{ user.get("name", "User") }}!</p>
+    <pre>{{ resources | tojson(indent=2) }}</pre>
+    <p><a href="/logout">Logout</a></p>
+  </body>
+</html>
