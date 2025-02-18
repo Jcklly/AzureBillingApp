@@ -10,9 +10,14 @@ COPY backend/ .
 # ==== Build Frontend ====
 FROM node:18 AS frontend-build
 WORKDIR /app/frontend
+
 # Copy package files and install dependencies
 COPY frontend/package.json frontend/package-lock.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
+
+# Explicitly install react-scripts globally
+RUN npm install -g react-scripts
+
 # Copy the rest of the frontend code and build it
 COPY frontend/ .
 RUN npm run build
