@@ -1,40 +1,19 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      // Replace '/api/login' with your actual backend login endpoint
-      const response = await axios.post('/api/login', { username, password });
-      localStorage.setItem('authToken', response.data.token);
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Login failed. Please check your credentials.');
-    }
+  const handleLogin = () => {
+    // For now, simulate login by navigating directly to the dashboard.
+    navigate('/dashboard');
   };
 
   return (
-    <div style={{ padding: '1rem' }}>
-      <h2>Login</h2>
-      {error && <p style={{color:'red'}}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Username:</label>
-          <input type="text" value={username} onChange={(e)=>setUsername(e.target.value)} />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
-        </div>
-        <button type="submit">Login</button>
-      </form>
+    <div style={{ padding: '20px' }}>
+      <h1>Login</h1>
+      <p>Please click the button below to simulate login.</p>
+      <button onClick={handleLogin}>Login</button>
     </div>
   );
 }
