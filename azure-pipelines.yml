@@ -5,6 +5,7 @@ resources:
 - repo: self
 
 variables:
+  # Azure Container Registry details
   dockerRegistryServiceConnection: '138f68fc-3f69-468d-b87e-98ba93a0748d'
   containerRegistry: 'jckllybillingacr.azurecr.io'
   backendImageRepository: 'jckllyazurebillingapp-backend'
@@ -21,18 +22,8 @@ stages:
   - job: Build
     displayName: Build Backend and Frontend Containers
     pool:
-      vmImage: $(vmImageName)
+      name: 'Default'
     steps:
-    - script: |
-        echo "Ensuring Docker is running..."
-        sudo apt update
-        sudo apt install -y docker.io
-        sudo systemctl start docker
-        sudo systemctl enable docker
-        sudo usermod -aG docker $(whoami)
-        docker --version
-      displayName: Install & Start Docker
-
     - task: Docker@2
       displayName: Build and push backend image
       inputs:
@@ -42,11 +33,6 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-
-    - script: |
-        echo "Checking if frontend/Dockerfile exists..."
-        ls -lah $(Build.SourcesDirectory)/frontend/
-      displayName: Check Frontend Dockerfile
 
     - task: Docker@2
       displayName: Build and push frontend image
