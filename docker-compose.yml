@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app/backend  # Live reload for backend
+      - ./frontend:/app/frontend  # Live reload for frontend
+    environment:
+      - ENV=development
+    ports:
+      - "8000:8000"  # Backend (FastAPI)
+      - "3000:3000"  # Frontend (React)
+    command: ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

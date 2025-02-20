@@ -20,3 +20,5 @@ azure-mgmt-subscription
 azure-mgmt-automation
 azure-mgmt-logic
 jinja2
+itsdangerous
+python-dotenv

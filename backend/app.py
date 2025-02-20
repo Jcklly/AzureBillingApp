@@ -1,4 +1,10 @@
 import os
+from dotenv import load_dotenv
+
+# Load local environment variables if present
+load_dotenv()
+
+
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -22,6 +28,7 @@ from azure.mgmt.recoveryservices import RecoveryServicesClient
 from azure.mgmt.automation import AutomationClient
 from azure.mgmt.logic import LogicManagementClient
 
+
 # Load required environment variables
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
@@ -34,15 +41,13 @@ COSMOS_DB_NAME = os.getenv("COSMOS_DB_NAME")
 COSMOS_DB_CONTAINER_RESOURCES = os.getenv("COSMOS_DB_CONTAINER_RESOURCES")
 COSMOS_DB_CONTAINER_USER_SUBSCRIPTIONS = os.getenv("COSMOS_DB_CONTAINER_USER_SUBSCRIPTIONS")
 
-# For MSAL (Microsoft Sign In)
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 REDIRECT_PATH = "/auth/callback"
-# Set the redirect URI to match what you registered in Azure AD.
 REDIRECT_URI = f"https://ancerobilling.azurewebsites.net{REDIRECT_PATH}"
 
 app = FastAPI()
 
-# Add session middleware for login sessions
+# Session middleware
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
 # Ensure static files exist
@@ -50,14 +55,12 @@ if not os.path.isdir("static"):
     os.makedirs("static")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Setup Jinja2 templates (create a "templates" folder with index.html, dashboard.html, and error.html)
 templates = Jinja2Templates(directory="templates")
-
 
 # Cosmos DB connection on startup
 @app.on_event("startup")
 def startup_event():
-    time.sleep(5)  # Delay to wait for external services if needed
+    time.sleep(5)  # Delay for external services if needed
     if not all([COSMOS_DB_URL, COSMOS_DB_KEY, COSMOS_DB_NAME,
                 COSMOS_DB_CONTAINER_RESOURCES, COSMOS_DB_CONTAINER_USER_SUBSCRIPTIONS]):
         raise RuntimeError("Missing one or more Cosmos DB environment variables!")
