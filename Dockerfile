@@ -19,32 +19,28 @@ FROM ubuntu:20.04
 # Set non-interactive mode to prevent timezone selection prompt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
+# Install required packages
 RUN apt-get update && \
-    apt-get install -y supervisor nginx python3 python3-pip tzdata && \
+    apt-get install -y supervisor nginx python3 python3-pip tzdata curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Create directories for logs if needed
-RUN mkdir -p /var/log/uvicorn /var/log/nginx
-
-# Copy the backend code from the backend-build stage
+# Copy the backend and frontend
 COPY --from=backend-build /app/backend /app/backend
-
-# ✅ Install Python dependencies in the final image
-RUN pip3 install --no-cache-dir -r /app/backend/requirements.txt
-
-# Copy the frontend build from frontend-build stage into nginx’s default html folder
-RUN rm -rf /var/www/html/*
 COPY --from=frontend-build /app/frontend/build /var/www/html
 
-# Copy your Supervisor configuration file
+# Install Python dependencies inside the final image
+RUN pip3 install --no-cache-dir -r /app/backend/requirements.txt
+
+# Copy Supervisor configuration
 COPY supervisor.conf /etc/supervisor/conf.d/supervisord.conf
 
-# ✅ Ensure correct permissions
-RUN chmod +x /usr/local/bin/uvicorn
+# Set working directory to backend
+WORKDIR /app/backend
 
-# Expose port 80 (nginx) – this will be the port your App Service listens on
-EXPOSE 80
+# Expose ports
+EXPOSE 80 8000
 
 # Start Supervisor (which will run both uvicorn and nginx)
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

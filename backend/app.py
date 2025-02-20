@@ -1,16 +1,12 @@
 import os
 from dotenv import load_dotenv
-
-# Load local environment variables if present
-load_dotenv()
-
-
 import time
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.templating import Jinja2Templates
+from contextlib import asynccontextmanager
 
 # MSAL for Microsoft authentication
 import msal
@@ -28,12 +24,14 @@ from azure.mgmt.recoveryservices import RecoveryServicesClient
 from azure.mgmt.automation import AutomationClient
 from azure.mgmt.logic import LogicManagementClient
 
+# Load local environment variables if present
+load_dotenv()
 
 # Load required environment variables
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 TENANT_ID = os.getenv("TENANT_ID")
-SESSION_SECRET = os.getenv("SESSION_SECRET", "super-secret-key")  # change in production!
+SESSION_SECRET = os.getenv("SESSION_SECRET", "super-secret-key")
 
 COSMOS_DB_URL = os.getenv("COSMOS_DB_URL")
 COSMOS_DB_KEY = os.getenv("COSMOS_DB_KEY")
@@ -41,26 +39,34 @@ COSMOS_DB_NAME = os.getenv("COSMOS_DB_NAME")
 COSMOS_DB_CONTAINER_RESOURCES = os.getenv("COSMOS_DB_CONTAINER_RESOURCES")
 COSMOS_DB_CONTAINER_USER_SUBSCRIPTIONS = os.getenv("COSMOS_DB_CONTAINER_USER_SUBSCRIPTIONS")
 
+# Print out to verify (for local testing)
+print("CLIENT_ID:", CLIENT_ID)
+
+# For MSAL (Microsoft Sign In)
 AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
 REDIRECT_PATH = "/auth/callback"
 REDIRECT_URI = f"https://ancerobilling.azurewebsites.net{REDIRECT_PATH}"
 
 app = FastAPI()
 
-# Session middleware
+# Add session middleware for login sessions
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 
-# Ensure static files exist
+# Ensure static files exist (for example, if you plan to serve static assets)
 if not os.path.isdir("static"):
     os.makedirs("static")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
-# Cosmos DB connection on startup
+# Startup event: If SKIP_COSMOS is set to true (or not set in production), skip the Cosmos DB connection.
 @app.on_event("startup")
 def startup_event():
-    time.sleep(5)  # Delay for external services if needed
+    # For local testing, you can set SKIP_COSMOS=true in your .env file
+    if os.getenv("SKIP_COSMOS", "true").lower() == "true":
+        print("SKIP_COSMOS is true; skipping Cosmos DB connection (local mode).")
+        return
+    # Otherwise, require that all required variables are set
     if not all([COSMOS_DB_URL, COSMOS_DB_KEY, COSMOS_DB_NAME,
                 COSMOS_DB_CONTAINER_RESOURCES, COSMOS_DB_CONTAINER_USER_SUBSCRIPTIONS]):
         raise RuntimeError("Missing one or more Cosmos DB environment variables!")
@@ -75,24 +81,30 @@ def startup_event():
     except Exception as e:
         raise RuntimeError("Failed to connect to Cosmos DB: " + str(e))
 
-
-# Root endpoint: show the login page if not logged in
+# Root endpoint: For local testing, return a simple HTML page.
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    if "user" in request.session:
-        return RedirectResponse(url="/dashboard")
-    return templates.TemplateResponse("index.html", {"request": request})
+    # For local testing, bypass checking session and simply return a basic page.
+    return HTMLResponse(
+        content="""
+            <html>
+              <head><title>AzureBillingApp</title></head>
+              <body>
+                <h1>Hello, World!</h1>
+                <p>This is a test page to verify that the application is running.</p>
+                <a href="/check-resources">Go to Check Resources</a>
+              </body>
+            </html>
+        """
+    )
 
-
-# Dashboard: displays after a successful login
+# Dashboard endpoint remains unchanged (for after login, production use)
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
     if "user" not in request.session:
         return RedirectResponse(url="/")
     user = request.session["user"]
-    # For now, simply display the dashboard template
     return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
-
 
 # Route to start the login process (Microsoft Sign In)
 @app.get("/login")
@@ -107,7 +119,6 @@ def login(request: Request):
         redirect_uri=REDIRECT_URI
     )
     return RedirectResponse(url=auth_url)
-
 
 # Callback endpoint for Microsoft Sign In
 @app.get(REDIRECT_PATH, response_class=HTMLResponse)
@@ -126,13 +137,11 @@ def auth_callback(request: Request):
         redirect_uri=REDIRECT_URI
     )
     if "access_token" in result:
-        request.session["user"] = result  # Save user token info in session
+        request.session["user"] = result
         return RedirectResponse(url="/dashboard")
     else:
         return templates.TemplateResponse("error.html", {"request": request, "error": "Authentication failed.", "details": result})
 
-
-# Test endpoint for the AzureResources container in Cosmos DB
 @app.get("/test-db")
 def test_db_resources():
     container = app.state.resources_container
@@ -154,8 +163,6 @@ def test_db_resources():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# Test endpoint for the UserSubscriptions container in Cosmos DB
 @app.get("/test-db-user-subscriptions")
 def test_db_user_subscriptions():
     container = app.state.user_subscriptions_container
@@ -177,8 +184,6 @@ def test_db_user_subscriptions():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# Endpoint to check Azure resources (billing-impacting details)
 @app.get("/check-resources")
 def check_resources():
     admin_user_id = "admin@jcklly.onmicrosoft.com"
