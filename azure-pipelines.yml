@@ -1,5 +1,11 @@
 trigger:
-- main
+  branches:
+    include:
+      - main  # Only trigger on main branch
+  paths:
+    exclude:
+      - frontend/**  # Prevent unnecessary backend rebuilds
+      - backend/**   # Prevent unnecessary frontend rebuilds
 
 resources:
 - repo: self
