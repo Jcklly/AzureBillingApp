@@ -1,0 +1,19 @@
+# Exclude build output directories
+**/bin/
+**/obj/
+
+# Exclude Git repository files
+.git
+.gitignore
+
+# Exclude IDE and editor-specific folders
+.vs/
+.idea/
+.vscode/
+
+# Exclude OS-specific files
+.DS_Store
+Thumbs.db
+
+# Exclude node_modules (if applicable)
+node_modules/

@@ -1,0 +1,29 @@
+# Build artifacts
+bin/
+obj/
+
+# Publish output
+publish/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / Rider / VS Code settings
+.vs/
+.idea/
+.vscode/
+
+# Dotnet local tools and temporary files
+.dotnet/
+tmp/
+temp/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
