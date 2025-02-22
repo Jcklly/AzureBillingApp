@@ -3,11 +3,24 @@ using MudBlazor.Services;
 using AzureBillingApp.Services;
 using System;
 using System.IO;
+using Microsoft.AspNetCore.DataProtection;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+
+// Add Data Protection
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDataProtection()
+        .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "dataprotection-keys")));
+}
+
+//builder.Services.AddDataProtection()
+//    .PersistKeysToFileSystem(new DirectoryInfo("/app-keys"))
+//    .SetApplicationName("AzureBillingApp");
 
 // Load environment variables from 'env' file
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), "env");
@@ -42,6 +55,7 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthorization();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
