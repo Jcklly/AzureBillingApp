@@ -10,6 +10,7 @@ publish/
 *.suo
 *.userosscache
 *.sln.docstates
+env
 
 # Visual Studio / Rider / VS Code settings
 .vs/

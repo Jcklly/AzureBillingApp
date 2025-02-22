@@ -1,0 +1,36 @@
+@page "/cosmos-test"
+@inject CosmosDbService CosmosService
+
+<MudContainer>
+    <MudCard>
+        <MudCardContent>
+            <MudText Typo="Typo.h5">Cosmos DB Connection Test</MudText>
+            <MudButton OnClick="TestConnection" Color="Color.Primary">Test Connection</MudButton>
+
+            @if (statusMessage != null)
+            {
+                <MudAlert Severity="@statusSeverity">@statusMessage</MudAlert>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private string? statusMessage;
+    private MudBlazor.Severity statusSeverity = MudBlazor.Severity.Normal;
+
+    private async Task TestConnection()
+    {
+        bool success = await CosmosService.TestConnectionAsync();
+        if (success)
+        {
+            statusMessage = "✅ Successfully connected to Cosmos DB!";
+            statusSeverity = MudBlazor.Severity.Success;
+        }
+        else
+        {
+            statusMessage = "❌ Failed to connect to Cosmos DB.";
+            statusSeverity = MudBlazor.Severity.Error;
+        }
+    }
+}
